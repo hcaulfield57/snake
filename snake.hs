@@ -1,6 +1,10 @@
 import Control.Concurrent
+import Control.Monad
 import Data.IORef
+import Data.Time
+import Foreign.C.Types (CFloat(..))
 import Graphics.UI.GLUT
+import System.Random
 
 data Direction = UP | DOWN | LEFT | RIGHT
     deriving Eq
@@ -13,6 +17,9 @@ snakeColor = Color4 0.506 0.928 0.4 0
 
 snakeSize :: GLfloat
 snakeSize = 0.09
+
+foodSize :: GLfloat
+foodSize = 0.05
 
 main :: IO ()
 main = do
@@ -38,6 +45,7 @@ snake snakeRef keyRef = do
     keyDir <- readIORef keyRef
     clearColor $= (Color4 1 1 1 0)
     clear [ColorBuffer]
+    spawnFood
     mapM_ (drawRect . getSnake) snakeHead
     flush
     writeIORef snakeRef (moveSnake 
@@ -70,6 +78,7 @@ drawRect (Rect (Pt(minx,miny)) (Pt(maxx,maxy))) =
 -- Key -> KeyState -> Modifiers -> Position -> IO ()
 handleKeys :: IORef Direction -> KeyboardMouseCallback
 handleKeys keyRef (Char k) Down _ _ = do
+    when (k /= 'h' || k /= 'j' || k /= 'k' || k /= 'l') (return ())
     let newDir = case k of
             'h' -> LEFT
             'j' -> DOWN
@@ -77,3 +86,13 @@ handleKeys keyRef (Char k) Down _ _ = do
             'l' -> RIGHT
     writeIORef keyRef newDir
 handleKeys _ _ _ _ _ = return ()
+
+spawnFood :: IO ()
+spawnFood = do
+    now <- getCurrentTime
+    size <- get screenSize
+    let gen = mkStdGen (fromInteger . toModifiedJulianDay . utctDay $ now)
+        (r,_) = random gen :: (Integer,StdGen)
+        --loc = r `mod` size
+        loc = (CFloat (fromIntegral (r `mod` 300))) :: GLfloat
+    drawRect (Rect (Pt(loc,loc)) (Pt(loc+foodSize,loc+foodSize)))
