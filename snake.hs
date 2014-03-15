@@ -29,13 +29,13 @@ main = do
     keyRef <- newIORef RIGHT
     windowSize $= Size 300 300
     displayCallback $= setup
-    idleCallback $= (Just (snake snakeRef keyRef))
-    keyboardMouseCallback $= (Just (handleKeys keyRef))
+    idleCallback $= Just (snake snakeRef keyRef)
+    keyboardMouseCallback $= Just (handleKeys keyRef)
     mainLoop
 
 setup :: DisplayCallback
 setup = do
-    clearColor $= (Color4 1 1 1 0)
+    clearColor $= Color4 1 1 1 0
     clear [ColorBuffer]
     flush
 
@@ -43,7 +43,7 @@ snake :: IORef [Snake] -> IORef Direction -> DisplayCallback
 snake snakeRef keyRef = do
     snakeHead <- readIORef snakeRef
     keyDir <- readIORef keyRef
-    clearColor $= (Color4 1 1 1 0)
+    clearColor $= Color4 1 1 1 0
     clear [ColorBuffer]
     spawnFood
     mapM_ (drawRect . getSnake) snakeHead
@@ -69,7 +69,7 @@ changeDirection RIGHT (Snake(Rect(Pt(minx,miny)) (Pt(maxx,maxy)))) =
 drawRect :: Rectangle -> IO ()
 drawRect (Rect (Pt(minx,miny)) (Pt(maxx,maxy))) =
     renderPrimitive Quads $ do
-        color $ snakeColor
+        color snakeColor
         vertex $ Vertex2 minx miny
         vertex $ Vertex2 maxx miny
         vertex $ Vertex2 maxx maxy
@@ -77,14 +77,14 @@ drawRect (Rect (Pt(minx,miny)) (Pt(maxx,maxy))) =
 
 -- Key -> KeyState -> Modifiers -> Position -> IO ()
 handleKeys :: IORef Direction -> KeyboardMouseCallback
-handleKeys keyRef (Char k) Down _ _ = do
-    when (k /= 'h' || k /= 'j' || k /= 'k' || k /= 'l') (return ())
-    let newDir = case k of
-            'h' -> LEFT
-            'j' -> DOWN
-            'k' -> UP
-            'l' -> RIGHT
-    writeIORef keyRef newDir
+handleKeys keyRef (Char k) Down _ _ = unless
+    (k `notElem` "hjkl") $
+        let newDir = case k of
+             'h' -> LEFT
+             'j' -> DOWN
+             'k' -> UP
+             'l' -> RIGHT
+        in writeIORef keyRef newDir
 handleKeys _ _ _ _ _ = return ()
 
 spawnFood :: IO ()
@@ -94,5 +94,5 @@ spawnFood = do
     let gen = mkStdGen (fromInteger . toModifiedJulianDay . utctDay $ now)
         (r,_) = random gen :: (Integer,StdGen)
         --loc = r `mod` size
-        loc = (CFloat (fromIntegral (r `mod` 300))) :: GLfloat
+        loc = CFloat (fromIntegral (r `mod` 1)) :: GLfloat
     drawRect (Rect (Pt(loc,loc)) (Pt(loc+foodSize,loc+foodSize)))
