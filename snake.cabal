@@ -1,0 +1,12 @@
+name:                snake
+version:             0.1
+license:             OtherLicense
+license-file:        LICENSE
+author:              Grant Mather
+maintainer:          hcaulfield57@gmail.com
+build-type:          Simple
+cabal-version:       >=1.8
+
+executable snake
+    main-is: snake.hs
+    build-depends: base, random, GLUT, time
