@@ -32,8 +32,8 @@ foodSize = 0.05
 
 main :: IO ()
 main = do
-    getArgsAndInitialize
-    win <- createWindow "Snake"
+    _ <- getArgsAndInitialize
+    _ <- createWindow "Snake"
     snakeRef <- newIORef [(Rect(Pt(0,0)) (Pt(snakeSize,snakeSize)))]
     dirRef <- newIORef RIGHT
     foodRef <- newIORef ((Rect(Pt(0.0,0.5)) (Pt(0+foodSize,0.5+foodSize))),mkStdGen 0)
