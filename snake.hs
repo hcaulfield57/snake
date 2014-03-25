@@ -106,7 +106,7 @@ checkCollision (snakeRef,dirRef,foodRef) = do
     dir <- readIORef dirRef
     food <- readIORef foodRef
     let (sminx,_) = getPt . minPt $ head snake
-        (_,smaxy) = getPt . minPt $ head snake
+        (_,smaxy) = getPt . maxPt $ head snake
     when ((fst food) `inRect` (head snake)) $ do
         addSnake snakeRef dirRef
         writeIORef foodRef (spawnFood food)
@@ -129,7 +129,7 @@ addSnake snakeRef dirRef = do
     snake <- readIORef snakeRef
     dir <- readIORef dirRef
     let (minx,miny) = getPt . minPt $ head snake
-        (maxx,maxy) = getPt . minPt $ head snake
+        (maxx,maxy) = getPt . maxPt $ head snake
         newSnake = case dir of
          LEFT -> (Rect(Pt(minx,miny-snakeSize)) (Pt(maxx,maxy-snakeSize))) : snake
          UP -> (Rect(Pt(minx+snakeSize,miny)) (Pt(maxx+snakeSize,maxy))) : snake
